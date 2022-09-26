@@ -26,7 +26,7 @@ def save(path):
 
 @flow(name="collect corona per sido")
 def collect(date=None):
-    date = date or datetime.datetime.today().strftime("%Y%m%d")
+    date = date or (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y%m%d")
     path = fetch(date)
     save(path)
 
