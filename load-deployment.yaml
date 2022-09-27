@@ -1,15 +1,15 @@
 ###
-### A complete description of a Prefect Deployment for flow 'collect corona per sido'
+### A complete description of a Prefect Deployment for flow 'load corona per sido'
 ###
-name: collect-corona-per-sido
+name: load-corona-per-sido
 description: null
-version: f6c09cc94853ae5c6305222a9311e21e
+version: 7e30ea7c1c232965cce0b37a2ca1086c
 # The work queue that will handle this deployment's runs
 work_queue_name: emma
 tags: []
 parameters: {"date": ""}
 schedule:
-  cron: 0 9 * * *
+  cron: 0 10 * * *
   timezone: Asia/Seoul
   day_or: true
 infra_overrides: {}
@@ -28,16 +28,17 @@ infrastructure:
 ###
 ### DO NOT EDIT BELOW THIS LINE
 ###
-flow_name: collect corona per sido
+flow_name: load corona per sido
 manifest_path: null
 storage: null
 path: /home/emma/corona
-entrypoint: per_sido.py:collect
+entrypoint: per_sido.py:load
 parameter_openapi_schema:
   title: Parameters
   type: object
   properties:
     date:
       title: date
-  required: null
+  required:
+  - date
   definitions: null
