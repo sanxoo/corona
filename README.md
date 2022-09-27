@@ -1,5 +1,7 @@
 # small data engineering practice with prefect2
 
+![image](https://user-images.githubusercontent.com/8120623/192447382-8a8c31ee-6331-4b0b-90a9-237864e5bb3a.png)
+
 ### 1. linux server
 > ubuntu server, docker
 
