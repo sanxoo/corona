@@ -19,7 +19,7 @@ infrastructure:
   labels: {}
   name: null
   command:
-  - python
+  - python3
   - -m
   - prefect.engine
   stream_output: true

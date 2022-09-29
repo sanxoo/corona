@@ -9,7 +9,7 @@ import storage
 import db
 
 def default_date():
-    return datetime.date.today().strftime("%Y%m%d")
+    return (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y%m%d")
 
 @task(retries=3, retry_delay_seconds=10)
 def fetch(date):
