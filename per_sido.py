@@ -48,7 +48,7 @@ def record(path):
         reader = csv.reader(f)
         header = next(reader)
         for row in reader:
-            d = {k: v for k, v in zip(header, row) if k in columns}
+            d = {k: (v == "-" and "0" or v) for k, v in zip(header, row) if k in columns}
             d["stdDay"] = datetime.datetime.strptime(d["stdDay"], "%Y년 %m월 %d일 %H시").date()
             list_of_dict.append(d)
     db.insert("corona_per_sido", list_of_dict)
