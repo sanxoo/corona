@@ -24,8 +24,7 @@ def target_dates():
     while 1:
         date = date - datetime.timedelta(days=1)
         dstr = date.strftime("%Y%m%d")
-        if dstr not in holidays: break
-        if date.weekday() < 5: break
+        if date.weekday() < 5 and dstr not in holidays: break
         dist.append(dstr)
     return dist
 
@@ -70,8 +69,5 @@ def collect(dates):
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) < 2:
-        sys.stderr.write(f"\nusage: {sys.argv[0]} YYYYmmdd [YYYYmmdd +]\n\n")
-        sys.exit()
     collect(sys.argv[1:])
 
