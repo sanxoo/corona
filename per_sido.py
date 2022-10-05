@@ -8,13 +8,31 @@ import openapi
 import storage
 import db
 
-def default_date():
-    return (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y%m%d")
+@task
+def target_dates():
+    date = datetime.date.today() - datetime.timedelta(days=1)
+    if 4 < date.weekday(): return []
+    holidays = []
+    service_url = "http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getAnniversaryInfo"
+    i, m = (date.year, date.month)
+    for year, month in [(i, m), (i - 1, 12) if m == 1 else (i, m - 1)]:
+        items = openapi.fetch(service_url, {"solYear": f"{year}", "solMonth": f"{month:02}"})
+        holidays += [i["locdate"] for i in items if i["isHoliday"] == "Y"]
+    dstr = date.strftime("%Y%m%d")
+    if dstr in holidays: return []
+    dist = [dstr]
+    while 1:
+        date = date - datetime.timedelta(days=1)
+        dstr = date.strftime("%Y%m%d")
+        if dstr not in holidays: break
+        if date.weekday() < 5: break
+        dist.append(dstr)
+    return dist
 
-@task(retries=3, retry_delay_seconds=10)
+@task(retries=2, retry_delay_seconds=600)
 def fetch(date):
     service_url = "http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19SidoInfStateJson"
-    items = openapi.fetch(service_url, date, date)
+    items = openapi.fetch(service_url, {"startCreateDt": date, "endCreateDt": date})
     if not items: raise Exception(f"no items for {date}")
     path = pathlib.Path("/home/emma/tmp") / f"{pathlib.Path(__file__).stem}_{date}.csv"
     with open(path, "w") as f:
@@ -24,24 +42,11 @@ def fetch(date):
     return path
 
 @task
-def save(path):
+def save_to_storage(path):
     storage.put("corona", path)
-    path.unlink()
-
-@flow(name="collect corona per sido")
-def collect(date):
-    date = date or default_date()
-    path = fetch(date)
-    save(path)
 
 @task
-def download_file(date):
-    path = pathlib.Path("/home/emma/tmp") / f"{pathlib.Path(__file__).stem}_{date}.csv"
-    storage.get("corona", path)
-    return path
-
-@task
-def record(path):
+def save_to_db(path):
     columns = ["stdDay", "gubun", "defCnt", "deathCnt", "incDec", "localOccCnt", "overFlowCnt", "qurRate"]
     list_of_dict = []
     with open(path) as f:
@@ -52,21 +57,21 @@ def record(path):
             d["stdDay"] = datetime.datetime.strptime(d["stdDay"], "%Y년 %m월 %d일 %H시").date()
             list_of_dict.append(d)
     db.insert("corona_per_sido", list_of_dict)
-    path.unlink()
 
-@flow(name="load corona per sido")
-def load(date):
-    date = date or default_date()
-    path = download_file(date)
-    record(path)
+@flow(name="collect corona per sido")
+def collect(dates):
+    dates = dates or target_dates()
+    for date in dates:
+        path = fetch(date)
+        save_to_storage(path)
+        save_to_db(path)
+        path.unlink()
+
 
 if __name__ == "__main__":
-    funcs = {
-        "collect": collect, "load": load
-    }
     import sys
-    if len(sys.argv) != 3:
-        sys.stderr.write(f"\nusage: {sys.argv[0]} {'|'.join(funcs.keys())} YYYYmmdd\n\n")
+    if len(sys.argv) < 2:
+        sys.stderr.write(f"\nusage: {sys.argv[0]} YYYYmmdd [YYYYmmdd +]\n\n")
         sys.exit()
-    funcs[sys.argv[1]](sys.argv[2])
+    collect(sys.argv[1:])
 

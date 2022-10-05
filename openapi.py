@@ -10,14 +10,12 @@ def parse_items(text):
 def parse_total(text):
     return int(xml.etree.ElementTree.fromstring(text).find("body/totalCount").text)
 
-def fetch(service_url, start_date, end_date):
+def fetch(service_url, params_dict):
     params = {
         "ServiceKey": "rp+Ayp72Chlp0fJBzQrSYtINgORq+xn1G4LmyMTsnEFIZaolXfueTakbBm1wXbYj9g8z17Dm7owJ9kxn4jIuSQ==",
-        "pageNo": 1,
-        "numOfRows": 10,
-        "startCreateDt": start_date,
-        "endCreateDt": end_date
+        "pageNo": 1, "numOfRows": 10
     }
+    params.update(params_dict)
     res = requests.get(service_url, params=params)
     items = parse_items(res.text)
     total = parse_total(res.text)
