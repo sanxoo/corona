@@ -12,10 +12,10 @@ import db
 def target_dates():
     date = datetime.date.today() - datetime.timedelta(days=1)
     if 4 < date.weekday(): return []
+    service_url = "http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo"
+    e, m = (date.year, date.month)
     holidays = []
-    service_url = "http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getAnniversaryInfo"
-    i, m = (date.year, date.month)
-    for year, month in [(i, m), (i - 1, 12) if m == 1 else (i, m - 1)]:
+    for year, month in [(e, m), (e - 1, 12) if m == 1 else (e, m - 1)]:
         items = openapi.fetch(service_url, {"solYear": f"{year}", "solMonth": f"{month:02}"})
         holidays += [i["locdate"] for i in items if i["isHoliday"] == "Y"]
     dstr = date.strftime("%Y%m%d")
@@ -60,7 +60,7 @@ def save_to_db(path):
 @flow(name="collect corona per sido")
 def collect(dates):
     dates = dates or target_dates()
-    for date in dates:
+    for date in sorted(dates):
         path = fetch(date)
         save_to_storage(path)
         save_to_db(path)
