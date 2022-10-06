@@ -7,7 +7,7 @@ version: 8d8a44772dd5076c15807179ab237dd0
 # The work queue that will handle this deployment's runs
 work_queue_name: emma
 tags: []
-parameters: {"date": []}
+parameters: {"dates": []}
 schedule:
   cron: 0 9 * * *
   timezone: Asia/Seoul
