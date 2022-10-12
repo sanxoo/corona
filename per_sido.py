@@ -8,7 +8,7 @@ import openapi
 import storage
 import db
 
-@task
+@task(retries=2, retry_delay_seconds=60)
 def target_dates():
     date = datetime.date.today() - datetime.timedelta(days=1)
     if 4 < date.weekday(): return []
@@ -28,7 +28,7 @@ def target_dates():
         dist.append(dstr)
     return dist
 
-@task(retries=2, retry_delay_seconds=600)
+@task(retries=2, retry_delay_seconds=300)
 def fetch(date):
     service_url = "http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19SidoInfStateJson"
     items = openapi.fetch(service_url, {"startCreateDt": date, "endCreateDt": date})
